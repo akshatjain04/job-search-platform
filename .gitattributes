@@ -1,6 +1,5 @@
-* text=auto
-*.sh text eol=lf
-*.ps1 text eol=crlf
-*.java text eol=lf
-*.docx binary
-*.pdf binary
+* text=auto eol=lf
+*.docx -text
+*.png -text
+*.pdf -text
+*.zip -text

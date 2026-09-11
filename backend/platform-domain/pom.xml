@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0">
-  <modelVersion>4.0.0</modelVersion><parent><groupId>io.myjobai</groupId><artifactId>job-search-platform</artifactId><version>0.1.0-SNAPSHOT</version></parent><artifactId>platform-domain</artifactId>
-  <dependencies></dependencies>
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>io.myjobai</groupId>
+    <artifactId>job-search-platform</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+  </parent>
+  <artifactId>platform-domain</artifactId>
+  <dependencies/>
 
 </project>

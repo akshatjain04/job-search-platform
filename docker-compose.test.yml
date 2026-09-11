@@ -1,0 +1,35 @@
+# Explicit isolated acceptance/demo topology. Never include this file in production deployment.
+x-test-env: &test-env
+  APP_MODE: test
+  APP_PUBLIC_URL: http://localhost:8080
+  SUPABASE_DB_URL: jdbc:postgresql://postgres:5432/myjobai_test
+  SUPABASE_DB_USER: myjobai_test
+  SUPABASE_DB_PASSWORD: isolated-test-only
+  ENCRYPTION_MASTER_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+  LOCAL_STORAGE_PATH: /data/storage
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment: {POSTGRES_USER: myjobai_test, POSTGRES_PASSWORD: isolated-test-only, POSTGRES_DB: myjobai_test}
+    volumes: [test-postgres:/var/lib/postgresql/data]
+    healthcheck: {test: [CMD-SHELL, 'pg_isready -U myjobai_test -d myjobai_test'], interval: 3s, timeout: 3s, retries: 30}
+    mem_limit: 256m
+  job-platform-api:
+    environment: {<<: *test-env, APP_ROLE: api}
+    depends_on: {postgres: {condition: service_healthy}}
+    volumes: [test-objects:/data/storage]
+  job-ingestion-worker:
+    environment: {<<: *test-env, APP_ROLE: ingestion}
+    volumes: [test-objects:/data/storage]
+  ai-worker:
+    environment: {<<: *test-env, APP_ROLE: ai}
+    volumes: [test-objects:/data/storage]
+  communication-worker:
+    environment: {<<: *test-env, APP_ROLE: communication}
+    volumes: [test-objects:/data/storage]
+  job-platform-mcp:
+    environment: {<<: *test-env, APP_ROLE: mcp}
+    volumes: [test-objects:/data/storage]
+volumes:
+  test-postgres:
+  test-objects:

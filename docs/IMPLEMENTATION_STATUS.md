@@ -1,51 +1,70 @@
 # Implementation status
 
-Updated: 2026-09-11. Status is evidence-based, not a completion claim.
+Updated: 2026-09-11. Local acceptance gates below passed. Operations delivery and remote CI verification are the remaining release checks.
 
-## Bootstrap evidence
+## Git and architecture baseline
 
-- Empty intended CWD initialized on `main`; exact GitHub origin configured.
-- GitHub device login completed as `akshatjain04` before architecture/code inspection. Auth state is protected under `.git/github-auth`; repo-local helper; no global helper mutation.
-- Authenticated API verified repository pull/push access; fetch and ls-remote succeeded; remote contained no refs.
-- Local name `akshatjain04`; local email `akshatjain0410@gmail.com`.
-- Global configuration SHA-256 before/after: `83C1E031A0B25C713E57C1C2864E9DABB1E31E6F25FCB6C04BFFF28A35D8F6D3`; system configuration absent before/after.
-- Architecture read completely (352 paragraphs, no additional media/header/footer parts). Source SHA-256 recorded in master spec.
-- Java 21.0.5 available; Maven 3.9.6 defaults to Java 17 and must be pointed at Java 21 per process. Node 22.9.0, npm 10.8.3, Docker Engine 27.1.1, Compose 2.29.1 available. Docker access requires execution outside sandbox.
+- Intended root: `C:/Users/aksha/go/src/github.com/akshatjain04/job-search-platform`; branch `main`; origin `https://github.com/akshatjain04/job-search-platform`.
+- Secure GitHub device authentication completed as `akshatjain04` before architecture or application work. Isolated configuration is protected under Git metadata with a repository-local credential helper.
+- Local email: `akshatjain0410@gmail.com`. No global/system identity or credential-helper mutation was performed.
+- Global Git configuration SHA-256 before/after setup: `83C1E031A0B25C713E57C1C2864E9DABB1E31E6F25FCB6C04BFFF28A35D8F6D3`; system configuration path checked at setup was absent.
+- Original architecture read completely: 352 paragraphs, no additional media/header/footer content. Source hash is recorded in the master specification. The packaged extraction helper reads all parts to EOF.
+- Implementation started from an empty repository; there were no unrelated application changes to overwrite.
 
-## Implementation gap matrix
+## Requirement / implementation gap matrix
 
-| Requirement | Initial implementation | Missing work | Owner module | Required coverage | State |
-|---|---|---|---|---|---|
-| Domain, ranking, lifecycle, approval invariants | Domain records/rules implemented | Broaden negative/concurrency tests during integration | platform-domain | 8 unit tests passed | IN PROGRESS |
-| PostgreSQL, migrations, transactions, outbox | Schema, owner-scoped adapters, immutable history, claim fencing | Session/mailbox/AI-cache adapters and production wiring | platform-persistence | 8 fresh-DB integration tests passed | IN PROGRESS |
-| Profile, jobs, resumes, applications, outreach | Profile/job/application/resume/approval use cases compile | Controllers, worker/generation workflows and end-to-end tests | platform-application; job-platform-api | Compilation passed; API tests pending | IN PROGRESS |
-| OAuth/PKCE, sessions, user isolation | None | Security and encrypted tokens | platform-runtime | Auth/CSRF/IDOR | NOT IMPLEMENTED |
-| Discovery and research | None | Source/search adapters and scheduling | platform-connectors; ingestion worker | Fixtures/worker | NOT IMPLEMENTED |
-| Multi-provider AI, schema and grounding | None | Three adapters, router, pipeline | platform-ai; AI worker | Stub HTTP/grounding/routing | NOT IMPLEMENTED |
-| Resume parsing, rendering and compatibility | None | Parser/renderer/repair | platform-resume | PDF/DOCX round-trip | NOT IMPLEMENTED |
-| Storage and approved mail | None | Supabase/Gmail/Graph/encryption | platform-storage; platform-mail | Adapter + approval tests | NOT IMPLEMENTED |
-| Dashboard | None | Full React client | web | Components/E2E/visual | NOT IMPLEMENTED |
-| Chrome extension | None | MV3 contextual client | extension | Fixtures/build | NOT IMPLEMENTED |
-| MCP | None | Thin authenticated transport | job-platform-mcp | Each tool/auth/schema | NOT IMPLEMENTED |
-| Deploy and startup | None | Images/Compose/Nginx/scripts | infra; scripts | Config/start/health | NOT IMPLEMENTED |
-| Documentation and repair skill | Source/acceptance records created | Runbooks and reusable skill | docs; skills | Evidence/link/script audit | IN PROGRESS |
+All modules were absent initially. These rows describe the current implementation and remaining proof, replacing earlier scaffold-stage reports.
+
+| Requirement / acceptance IDs | Current implementation | Evidence | Remaining work / status |
+|---|---|---|---|
+| Domain / PROFILE-01, JOB-02/03, APP-01 | Typed profile/preferences/facts; normalization, ranking, dedup, legal lifecycle and history | Domain and PostgreSQL tests; browser profile/tracker path | Implemented; current final verification in progress |
+| DB-01/02, ASYNC-01 | Flyway V1–V3, owner predicates/composite FKs, immutable versions/events/facts, transactional outbox, claim fencing/retry/idempotency | Fresh PostgreSQL migration/validation, 40 concurrent claims, rollback and lease tests; restart preserves session/profile/job and exact resume bytes | Local acceptance passed |
+| SEC-01/02/03/04 | OAuth/PKCE BFF, encrypted server refresh tokens, CSRF, restricted CORS, JWT validation, owner isolation, protected extension/MCP tokens | Real HTTP API/MCP tests, token cipher tamper/owner tests, SSRF/path/upload tests | Live Supabase/social OAuth registration requires external setup |
+| JOB-01/04, CONTACT-01/02 | Greenhouse/Lever/Ashby/structured career adapters, capture/import, hiring/referral kinds, provenance, scheduling/match alerts; Brave/public-contact research | Stored feed fixtures, malicious capture, private-address rejection; public-contact evidence fixture added | Live search/feed changes need normal operational monitoring; Brave live proof needs key |
+| AI-01–05, COST-01 | Gemini default, OpenAI/Claude real adapters, tier/config registry, schema enforcement, bounded retries/timeouts/cancellation, usage/cache/budget and no fallback | Stub transport contracts for all providers/tiers, configuration/schema/errors, cache/usage rollback tests | Live provider proof requires selected key/model access |
+| RESUME-01/02/03 | PDF/DOCX parsing, structured review sections/source lines, grounded fact selection, supplied education/dates, deterministic PDF/DOCX, compatibility/parse gates and repair history | Round-trip/byte tests, grounding tests, real API tailoring; latest PDF with education visually inspected | Local acceptance passed |
+| OUTREACH-01, APPROVAL-01/02, MAIL-01/02 | Three channels, user templates, immutable preview/approval/queue, Gmail/Graph MIME/OAuth, worker revalidation and explicit uncertain-delivery reconciliation | Mail transport fixtures, API approval/edit/idempotency/owner/reconciliation tests; real worker test-send E2E | Live OAuth/send verification requires controlled mailbox credentials and explicit approval |
+| WEB-01, E2E-01/02 | Responsive React routes for profile/jobs/resumes/recruiters/tracker/approval/activity/analytics/connections | Five component/API tests; four real-stack E2E scenarios passed; desktop and mobile screenshots reviewed | Local acceptance passed |
+| EXT-01 | MV3 React popup, user-triggered visible page/JSON-LD capture, PKCE, origin-bound one-hour access token, contextual actions | Eight deterministic extraction/client tests and production build passed | Live unpacked Chrome identity/permission flow remains manual acceptance |
+| MCP-01/02 | One authenticated stateless HTTP server, 13 tools over shared services; no arbitrary send | All 13 tools exercised against real application services/PostgreSQL; schema/auth/foreign/missing ID tests | Live client/account interoperability requires configured identity |
+| OPS-01/02/03, DEPLOY-01/02 | Non-root images, production/test Compose separation, Nginx TLS/API/MCP, Bash/PowerShell bootstrap and EC2 release deployment | Full bootstrap/image builds, seven healthy containers, smoke/restart, production Compose and Nginx TLS syntax passed | Real EC2/DNS/public TLS needs target |
+| ARCH-01, DOC-01, SKILL-01 | Cost V1 boundaries, setup/operations/security docs, acceptance ledger, portable repair skill and scripts | Repository scan including documentation links: 236 files, no errors; skill validator and static helper passed | Final delivery/remote CI pending |
 
 ## Executed verification
 
-- `mvn -f backend/pom.xml -pl platform-domain -am test` with Java 21 and repository-local Maven cache: PASS, 8 tests, no skips.
-- `mvn -f backend/pom.xml -pl platform-persistence -am test` with Java 21 and Docker: PASS, 16 tests total, no skips. PostgreSQL 16 container initialized from empty database; Flyway migrate and validate succeeded. Verified indexes, source preservation, cross-user constraints, transactional rollback, idempotency, 40 concurrent claims, lease fencing/backoff and immutable application history.
-- Git checkpoint `284df543f965a3e67bd87b9befd5a0d2a11b8f48` pushed and remote HEAD verified (architecture/specification/acceptance baseline).
+- Java 21.0.5, Maven 3.9.6, Node 22.9.0, npm 10.8.3, Docker Engine 27.1.1 and Compose 2.29.1.
+- Clean backend `mvn -f backend/pom.xml clean verify` via primary bootstrap: PASS, 49 tests, zero failures/errors/skips. All five executable JARs packaged. Includes structured-import/date/education/contact evidence tests.
+- Windows commands used process-local `JAVA_HOME` pointing at Java 21, a local Maven cache under ignored `.tools/m2`, and the installed Arial TTF for host resume rendering.
+- `npm run verify --prefix web`: PASS, five tests plus TypeScript/Vite bundle.
+- `npm run verify --prefix extension`: PASS, eight tests plus TypeScript/Vite bundle after correcting Node test types and Chrome overload mocking.
+- `npm test`: PASS, three preflight configuration tests.
+- `npm run e2e --prefix web`: PASS, four scenarios: mobile layout; complete profile/upload/capture/match/tailor/approval/test-send/history; stale approval after edit; malicious capture isolation. Fixture pacing was corrected after one run hit Nginx 429; the production rate limit remains enabled.
+- `./scripts/bootstrap-and-run.ps1 -Demo`: PASS end-to-end, including clean tests, backend/web image builds, seven healthy test containers, web/API readiness and unauthenticated API/MCP rejection.
+- `node scripts/restart-test.mjs`: PASS; session, profile, canonical job, immutable resume metadata and exact PDF bytes survive all-container restart. Harness uses fresh HTTP connections across restart after detecting a stale pooled connection.
+- Nginx `nginx -t` with production TLS template and an ignored one-day test certificate: PASS under UID 101. Key ownership must permit UID/GID 101 reading as documented; initial test correctly rejected an unreadable key. Public certificate issuance/renewal was not exercised.
+- `mvn -f backend/pom.xml -Pformat spotless:check` and `npm run format:check`: PASS.
+- Production `docker compose ... config --quiet`: PASS with example configuration; no production local database is defined. This validates configuration shape, not live credentials.
+- Git Bash `bash -n` on deployment/bootstrap scripts: PASS.
+- `python .../quick_validate.py skills/job-search-platform-repair`: PASS. Architecture reader completed to EOF (326 non-empty output lines including part headings).
+- Skill `validate.mjs --root=. --static`: PASS; evidence at ignored `.local/audit/latest.json`.
+- Rendered artifacts under `backend/platform-resume/target/test-artifacts`; desktop screenshot under `web/test-results/golden-dashboard.png` inspected. Reports live in each module's `target/surefire-reports` and `web/playwright-report`.
 
-## Integration checkpoint (supersedes initial matrix where noted)
+## Pushed checkpoints
 
-- Implemented real Gemini, OpenAI Responses, and Claude structured-output strategies, configuration registry, tier routing, schema enforcement, safe errors, retries, cancellation, usage/cost metadata and deterministic test provider.
-- Implemented Greenhouse, Lever, Ashby, JSON-LD career pages, user captures, SSRF-safe public fetching, Brave research and provenance-based contact extraction.
-- Implemented PDF/DOCX extraction, deterministic rendering, fact-ID selection, conservative grounding, bounded repair and score history; private Supabase/local-test storage adapters.
-- Implemented BFF OAuth/PKCE sessions, JWT validation, encrypted server-side refresh tokens, CSRF/ownership boundaries, REST resources and thin authenticated MCP tools.
-- Implemented immutable email preview/approval/queue, Gmail/Graph adapters, mailbox OAuth and refresh, non-sending test mode, and three executable PostgreSQL workers. Ambiguous delivery is not retried automatically.
-- Implemented dashboard routes and extension contextual client; additional acceptance tests and deployment work remain underway.
-- Latest complete backend `mvn package`: PASS, 29 tests, zero failures/errors/skips. Fresh PostgreSQL migrations V1/V2 and usage-accounting rollback regression passed. All five executable applications packaged. API/MCP HTTP startup tests still pending at this checkpoint.
-- `cd web; npm run verify`: PASS, 3 tests and TypeScript/Vite production build. Broader UX/E2E coverage pending.
-- Git checkpoint `04617bd589ea9571cb6e7516dba01918dcd15eb2` pushed and remote verified (domain + PostgreSQL).
+| Commit | Completed slice | Push verification |
+|---|---|---|
+| `284df543f965a3e67bd87b9befd5a0d2a11b8f48` | Architecture/specification/acceptance baseline | Remote HEAD verified |
+| `04617bd589ea9571cb6e7516dba01918dcd15eb2` | Domain and transactional PostgreSQL persistence | Remote HEAD verified |
+| `c34cbd06e22c2aa221004cdbe467e5e036e2534b` | AI/resume/integration/security/worker platform | Remote HEAD verified |
+| `72a3fef52b31912f7d52109b34dd911eb8fce827` | API/MCP acceptance, analytics, immutable evidence, delivery reconciliation and formatting | Remote HEAD verified |
+| `40a1bbc5c495b4f0570952996a9e1ca1ff4ca72e` | Dashboard/extension, structured resume review, source dates/education and browser acceptance | Remote HEAD verified |
 
-Not yet verified: full service startup, Docker images/Compose, HTTP API/MCP acceptance, extension build, complete E2E, production deployment. External accounts/credentials are absent; no live LLM request or real email was used. This checkpoint is not a final completion claim.
+Operations/docs/skill delivery and final synchronization remain pending in this work session. No force push or published-history rewrite has been used.
+
+## External verification limits and deliberate V1 boundaries
+
+Real adapters are implemented; live Supabase database/storage/OAuth, Gemini/OpenAI/Claude, Brave, Gmail/Graph and AWS EC2/DNS/TLS verification require accounts or credentials not supplied in this session. Normal tests use isolated PostgreSQL, stub transports, deterministic AI and a non-sending mailbox.
+
+V1 uses exact verified fact selection/reordering, not unrestricted semantic paraphrasing. Structured resume extraction is a review aid; ambiguous employment relationships and verification require the user. OCR, unrestricted international font coverage, automated social posting/applications, phone/paid enrichment, advanced causal analytics and optional scaling infrastructure are outside the implemented V1 behavior. Internal scoring is a transparent lexical compatibility proxy, not an employer ATS guarantee. No production capacity or provider acceptance claim is based solely on fixtures.
+
+Do not mark the final acceptance complete until the pending checks above have actual results and all intended commits are pushed.

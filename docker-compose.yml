@@ -1,0 +1,51 @@
+name: myjobai
+x-backend: &backend
+  image: myjobai/backend:${IMAGE_TAG:-local}
+  env_file: ${APP_ENV_FILE:-.env}
+  restart: unless-stopped
+  read_only: true
+  tmpfs: ['/tmp:size=128m,mode=1777']
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  mem_limit: 512m
+  pids_limit: 256
+  logging:
+    driver: json-file
+    options: {max-size: 10m, max-file: '3'}
+services:
+  job-platform-api:
+    <<: *backend
+    build: {context: ., dockerfile: infra/docker/backend.Dockerfile}
+    environment: {APP_ROLE: api, APP_MODE: production}
+  job-ingestion-worker:
+    <<: *backend
+    environment: {APP_ROLE: ingestion, APP_MODE: production, SPRING_FLYWAY_ENABLED: 'false'}
+    depends_on: {job-platform-api: {condition: service_healthy}}
+  ai-worker:
+    <<: *backend
+    environment: {APP_ROLE: ai, APP_MODE: production, SPRING_FLYWAY_ENABLED: 'false'}
+    depends_on: {job-platform-api: {condition: service_healthy}}
+  communication-worker:
+    <<: *backend
+    environment: {APP_ROLE: communication, APP_MODE: production, SPRING_FLYWAY_ENABLED: 'false'}
+    depends_on: {job-platform-api: {condition: service_healthy}}
+  job-platform-mcp:
+    <<: *backend
+    environment: {APP_ROLE: mcp, APP_MODE: production, SPRING_FLYWAY_ENABLED: 'false'}
+    depends_on: {job-platform-api: {condition: service_healthy}}
+  web:
+    image: myjobai/web:${IMAGE_TAG:-local}
+    build: {context: ., dockerfile: infra/docker/web.Dockerfile}
+    ports: ['127.0.0.1:8080:8080']
+    restart: unless-stopped
+    read_only: true
+    tmpfs: ['/tmp:size=32m,mode=1777']
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 96m
+    depends_on:
+      job-platform-api: {condition: service_healthy}
+      job-platform-mcp: {condition: service_healthy}
+    logging:
+      driver: json-file
+      options: {max-size: 10m, max-file: '3'}

@@ -1,0 +1,12 @@
+{
+  "name": "myjobai-repository-tools",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test scripts/*.test.mjs",
+    "audit:repository": "node scripts/verify-repository.mjs",
+    "format": "prettier --write \"web/**/*.{ts,tsx,json,css,html}\" \"extension/**/*.{ts,tsx,json,css,html}\" \"scripts/*.mjs\"",
+    "format:check": "prettier --check \"web/**/*.{ts,tsx,json,css,html}\" \"extension/**/*.{ts,tsx,json,css,html}\" \"scripts/*.mjs\""
+  },
+  "devDependencies": { "prettier": "3.6.2" }
+}

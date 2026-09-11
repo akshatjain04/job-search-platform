@@ -177,11 +177,7 @@ public class GenerationService {
     var sections = new LinkedHashMap<String, List<Resume.Bullet>>();
     var skills = new LinkedHashSet<String>();
     for (var fact : facts) {
-      String heading =
-          fact.company().isBlank()
-              ? fact.context()
-              : fact.company() + (fact.context().isBlank() ? "" : " — " + fact.context());
-      if (heading.isBlank()) heading = "Verified experience";
+      String heading = fact.resumeHeading();
       sections
           .computeIfAbsent(heading, k -> new ArrayList<>())
           .add(new Resume.Bullet(fact.id(), fact.statement()));
@@ -192,7 +188,8 @@ public class GenerationService {
         sections.entrySet().stream()
             .map(e -> new Resume.Section(e.getKey(), e.getValue()))
             .toList(),
-        List.copyOf(skills));
+        List.copyOf(skills),
+        profile.education());
   }
 
   public static String hashBytes(byte[] bytes) {

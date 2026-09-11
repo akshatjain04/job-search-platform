@@ -21,7 +21,21 @@ public final class Compatibility {
                     + " "
                     + String.join(" ", resume.skills()),
                 (a, b) -> a + " " + b);
-    var expected = tokens(resumeText);
+    String renderedContext =
+        resume.identity().phone()
+            + " "
+            + resume.identity().location()
+            + " "
+            + String.join(" ", resume.identity().links())
+            + " "
+            + resume.sections().stream()
+                .map(Resume.Section::heading)
+                .reduce("", (a, b) -> a + " " + b)
+            + " "
+            + resume.education().stream()
+                .map(e -> e.institution() + " " + e.qualification() + " " + e.dates())
+                .reduce("", (a, b) -> a + " " + b);
+    var expected = tokens(resumeText + " " + renderedContext);
     var pdf = tokens(extractedPdfText);
     var docx = tokens(extractedDocxText);
     double parsing =

@@ -10,17 +10,25 @@ public final class Resume {
 
   public record Section(String heading, List<Bullet> bullets) {
     public Section {
-      heading = Checks.text(heading, "Section heading", 200);
+      heading = Checks.text(heading, "Section heading", 600);
       bullets = Checks.list(bullets);
     }
   }
 
   public record Structured(
-      Candidate.Identity identity, List<Section> sections, List<String> skills) {
+      Candidate.Identity identity,
+      List<Section> sections,
+      List<String> skills,
+      List<Candidate.Education> education) {
+    public Structured(Candidate.Identity identity, List<Section> sections, List<String> skills) {
+      this(identity, sections, skills, List.of());
+    }
+
     public Structured {
       Checks.required(identity);
       sections = Checks.list(sections);
       skills = Checks.list(skills);
+      education = Checks.list(education);
     }
   }
 
@@ -31,7 +39,23 @@ public final class Resume {
       String objectKey,
       String contentHash,
       String extractedText,
-      Instant createdAt) {}
+      Instant createdAt,
+      ResumeImport.Parsed parsed) {
+    public Base(
+        UUID id,
+        UUID userId,
+        String filename,
+        String objectKey,
+        String contentHash,
+        String extractedText,
+        Instant createdAt) {
+      this(id, userId, filename, objectKey, contentHash, extractedText, createdAt, null);
+    }
+
+    public Base {
+      if (parsed == null) parsed = ResumeImport.parse(extractedText);
+    }
+  }
 
   public record Scores(
       double compatibility,
@@ -57,6 +81,8 @@ public final class Resume {
       Structured content, Candidate.Profile profile, List<Candidate.Fact> facts) {
     if (!content.identity().equals(profile.identity()))
       throw DomainException.invalid("Generated identity differs from the candidate profile");
+    if (!content.education().equals(profile.education()))
+      throw DomainException.invalid("Generated education differs from the candidate profile");
     var verified = new HashMap<UUID, Candidate.Fact>();
     facts.stream()
         .filter(f -> f.verified() && f.userId().equals(profile.userId()))
@@ -77,11 +103,7 @@ public final class Resume {
         if (!Normalization.text(bullet.text()).equals(Normalization.text(fact.statement())))
           throw DomainException.invalid(
               "Generated claim is not supported verbatim by its verified source fact");
-        String expectedHeading =
-            fact.company().isBlank()
-                ? fact.context()
-                : fact.company() + (fact.context().isBlank() ? "" : " — " + fact.context());
-        if (expectedHeading.isBlank()) expectedHeading = "Verified experience";
+        String expectedHeading = fact.resumeHeading();
         if (!section.heading().equals(expectedHeading))
           throw DomainException.invalid("Generated employment/context heading is unsupported");
       }

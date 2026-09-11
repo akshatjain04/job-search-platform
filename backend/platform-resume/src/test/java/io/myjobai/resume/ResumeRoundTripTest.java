@@ -21,11 +21,24 @@ class ResumeRoundTripTest {
                         new Resume.Bullet(
                             UUID.fromString("00000000-0000-0000-0000-000000000001"),
                             "Built Java services handling 100 requests per second.")))),
-            List.of("Java"));
+            List.of("Java"),
+            List.of(new Candidate.Education("State University", "Computer Science", "2016–2020")));
     var a = renderer.render(resume, "classic");
     var b = renderer.render(resume, "classic");
-    assertThat(a.pdfText()).contains("Alice Engineer", "100 requests per second");
-    assertThat(a.docxText()).contains("Alice Engineer", "100 requests per second");
+    assertThat(a.pdfText())
+        .contains(
+            "Alice Engineer",
+            "100 requests per second",
+            "Education",
+            "State University",
+            "2016–2020");
+    assertThat(a.docxText())
+        .contains(
+            "Alice Engineer",
+            "100 requests per second",
+            "Education",
+            "State University",
+            "2016–2020");
     assertThat(a.pdf()).isEqualTo(b.pdf());
     assertThat(a.docx()).isEqualTo(b.docx());
     var artifacts =

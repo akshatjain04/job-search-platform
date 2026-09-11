@@ -157,5 +157,15 @@ public final class Candidate {
       if (from != null && to != null && to.isBefore(from))
         throw DomainException.invalid("Fact end date precedes start date");
     }
+
+    public String resumeHeading() {
+      String heading =
+          company.isBlank() ? context : company + (context.isBlank() ? "" : " — " + context);
+      if (heading.isBlank()) heading = "Verified experience";
+      if (from != null && to != null) heading += " (" + from + " — " + to + ")";
+      else if (from != null) heading += " (start: " + from + ")";
+      else if (to != null) heading += " (end: " + to + ")";
+      return heading;
+    }
   }
 }

@@ -37,6 +37,13 @@ public final class DeterministicResumeRenderer implements Ports.ResumeRenderer {
       lines.add(new Line(section.heading(), 12, true));
       for (var bullet : section.bullets()) lines.add(new Line("- " + bullet.text(), 10, false));
     }
+    if (!resume.education().isEmpty()) {
+      lines.add(new Line("Education", 12, true));
+      for (var education : resume.education()) {
+        lines.add(new Line(education.institution() + " — " + education.qualification(), 10, false));
+        if (!education.dates().isBlank()) lines.add(new Line(education.dates(), 10, false));
+      }
+    }
     try {
       byte[] pdf = pdf(lines, template.equals("compact") ? 13 : 15);
       byte[] docx = docx(lines);

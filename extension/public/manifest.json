@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "MyJobAI — Intentional job capture",
+  "version": "0.1.0",
+  "description": "Analyze the job, hiring or referral page you choose. No background crawling.",
+  "action": { "default_popup": "index.html", "default_title": "Analyze with MyJobAI" },
+  "permissions": ["activeTab", "scripting", "storage", "identity"],
+  "optional_host_permissions": ["https://*/*", "http://localhost/*", "http://127.0.0.1/*"],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'none'; base-uri 'none'"
+  }
+}

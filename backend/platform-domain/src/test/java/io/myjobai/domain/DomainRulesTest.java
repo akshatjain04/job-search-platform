@@ -141,7 +141,7 @@ class DomainRulesTest {
                 new Resume.Section(
                     "Acme — Engineer", List.of(new Resume.Bullet(fact.id(), fact.statement())))),
             List.of("Java"));
-    String text = "Alice alice@example.com Built Java services Java";
+    String text = "Alice alice@example.com Acme Engineer Built Java services Java";
     assertThat(
             Compatibility.evaluate(
                     content,
@@ -150,6 +150,14 @@ class DomainRulesTest {
                     text)
                 .recommended())
         .isTrue();
+    assertThat(
+            Compatibility.evaluate(
+                    content,
+                    job("https://example.com/job", Opportunity.Kind.JOB_POSTING, now),
+                    "Alice alice@example.com Built Java services Java",
+                    text)
+                .recommended())
+        .isFalse();
     assertThat(
             Compatibility.evaluate(
                     content,

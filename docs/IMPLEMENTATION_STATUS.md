@@ -16,9 +16,9 @@ Updated: 2026-09-11. Status is evidence-based, not a completion claim.
 
 | Requirement | Initial implementation | Missing work | Owner module | Required coverage | State |
 |---|---|---|---|---|---|
-| Domain, ranking, lifecycle, approval invariants | None | Entire domain | platform-domain | Unit invariants | NOT IMPLEMENTED |
-| PostgreSQL, migrations, transactions, outbox | None | Schema and adapters | platform-persistence | Fresh DB/concurrency/isolation | NOT IMPLEMENTED |
-| Profile, jobs, resumes, applications, outreach | None | Use cases and APIs | platform-application; job-platform-api | API/transactions | NOT IMPLEMENTED |
+| Domain, ranking, lifecycle, approval invariants | Domain records/rules implemented | Broaden negative/concurrency tests during integration | platform-domain | 8 unit tests passed | IN PROGRESS |
+| PostgreSQL, migrations, transactions, outbox | Schema, owner-scoped adapters, immutable history, claim fencing | Session/mailbox/AI-cache adapters and production wiring | platform-persistence | 8 fresh-DB integration tests passed | IN PROGRESS |
+| Profile, jobs, resumes, applications, outreach | Profile/job/application/resume/approval use cases compile | Controllers, worker/generation workflows and end-to-end tests | platform-application; job-platform-api | Compilation passed; API tests pending | IN PROGRESS |
 | OAuth/PKCE, sessions, user isolation | None | Security and encrypted tokens | platform-runtime | Auth/CSRF/IDOR | NOT IMPLEMENTED |
 | Discovery and research | None | Source/search adapters and scheduling | platform-connectors; ingestion worker | Fixtures/worker | NOT IMPLEMENTED |
 | Multi-provider AI, schema and grounding | None | Three adapters, router, pipeline | platform-ai; AI worker | Stub HTTP/grounding/routing | NOT IMPLEMENTED |
@@ -30,4 +30,10 @@ Updated: 2026-09-11. Status is evidence-based, not a completion claim.
 | Deploy and startup | None | Images/Compose/Nginx/scripts | infra; scripts | Config/start/health | NOT IMPLEMENTED |
 | Documentation and repair skill | Source/acceptance records created | Runbooks and reusable skill | docs; skills | Evidence/link/script audit | IN PROGRESS |
 
-No application builds or tests have been run yet. No provider live verification or deployment has been performed. No implementation commits exist yet.
+## Executed verification
+
+- `mvn -f backend/pom.xml -pl platform-domain -am test` with Java 21 and repository-local Maven cache: PASS, 8 tests, no skips.
+- `mvn -f backend/pom.xml -pl platform-persistence -am test` with Java 21 and Docker: PASS, 16 tests total, no skips. PostgreSQL 16 container initialized from empty database; Flyway migrate and validate succeeded. Verified indexes, source preservation, cross-user constraints, transactional rollback, idempotency, 40 concurrent claims, lease fencing/backoff and immutable application history.
+- Git checkpoint `284df543f965a3e67bd87b9befd5a0d2a11b8f48` pushed and remote HEAD verified (architecture/specification/acceptance baseline).
+
+Full application build/startup, API/UI/extension/MCP tests and live-provider verification remain pending. Production provider adapters are being implemented; this is not a completed application.

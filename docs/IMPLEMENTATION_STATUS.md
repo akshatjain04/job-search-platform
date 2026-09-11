@@ -43,6 +43,8 @@ All modules were absent initially. These rows describe the current implementatio
 - `node scripts/restart-test.mjs`: PASS; session, profile, canonical job, immutable resume metadata and exact PDF bytes survive all-container restart. Harness uses fresh HTTP connections across restart after detecting a stale pooled connection.
 - Nginx `nginx -t` with production TLS template and an ignored one-day test certificate: PASS under UID 101. Key ownership must permit UID/GID 101 reading as documented; initial test correctly rejected an unreadable key. Public certificate issuance/renewal was not exercised.
 - `mvn -f backend/pom.xml -Pformat spotless:check` and `npm run format:check`: PASS.
+- `./scripts/stop.ps1 -Demo` followed by `./scripts/start.ps1 -Demo`: PASS, preserved volumes, all seven services healthy and smoke passed. Bash bootstrap/deploy syntax and all PowerShell script parsing passed.
+- Final global Git configuration fingerprint still matches the pre-setup value; system configuration remains absent. Repository root/origin/local email were rechecked successfully.
 - Production `docker compose ... config --quiet`: PASS with example configuration; no production local database is defined. This validates configuration shape, not live credentials.
 - Git Bash `bash -n` on deployment/bootstrap scripts: PASS.
 - `python .../quick_validate.py skills/job-search-platform-repair`: PASS. Architecture reader completed to EOF (326 non-empty output lines including part headings).
@@ -59,7 +61,7 @@ All modules were absent initially. These rows describe the current implementatio
 | `72a3fef52b31912f7d52109b34dd911eb8fce827` | API/MCP acceptance, analytics, immutable evidence, delivery reconciliation and formatting | Remote HEAD verified |
 | `40a1bbc5c495b4f0570952996a9e1ca1ff4ca72e` | Dashboard/extension, structured resume review, source dates/education and browser acceptance | Remote HEAD verified |
 
-Operations/docs/skill delivery and final synchronization remain pending in this work session. No force push or published-history rewrite has been used.
+Operations/docs/skill checkpoint `690b57f` is committed locally. GitHub rejected its push because the isolated OAuth login lacks `workflow` scope for `.github/workflows/verify.yml`; secure device authorization has been started. Final synchronization and remote CI verification depend on that authorization. No force push or published-history rewrite has been used.
 
 ## External verification limits and deliberate V1 boundaries
 

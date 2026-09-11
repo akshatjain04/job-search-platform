@@ -1,0 +1,4 @@
+interface:
+  display_name: "Job Search Platform Repair"
+  short_description: "Prove, repair and verify this V1 repository"
+  default_prompt: "Use $job-search-platform-repair to inspect this repository against its sources of truth, repair proven gaps and verify the acceptance criteria."

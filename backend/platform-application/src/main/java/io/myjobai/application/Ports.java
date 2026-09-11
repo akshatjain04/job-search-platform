@@ -52,6 +52,7 @@ public final class Ports {
         void state(UUID user,UUID message,Outreach.State state,Instant now);
         void approve(Outreach.Approval approval);
         Optional<Outreach.Approval> approval(UUID user,UUID id);
+        Optional<Outreach.Approval> currentApproval(UUID user,UUID message);
         void invalidate(UUID user,UUID message,Instant now);
     }
     public interface Outbox {
@@ -80,6 +81,10 @@ public final class Ports {
     public interface Intelligence { Completion generate(UUID user,LlmRequest request); }
     public record SearchResult(String title,String url,String snippet) {}
     public interface WebResearch { List<SearchResult> search(String query); String publicPage(String url); }
+    public record CaptureInput(String url,String title,String text,String company,Map<String,Object> metadata) {}
+    public interface PageCaptures { DiscoveredJob extract(CaptureInput input); }
+    public record ContactEvidence(String label,String value,Contact.Type type,String sourceUrl) {}
+    public interface RecruiterResearch { List<ContactEvidence> find(Opportunity.Job job); }
     public record SourceCapabilities(boolean discovery,boolean jobDetails,boolean recruiter,String accessMethod) {}
     public record DiscoveryCriteria(String board,String role,int limit) {}
     public record DiscoveredJob(String externalId,String title,String company,String location,String description,

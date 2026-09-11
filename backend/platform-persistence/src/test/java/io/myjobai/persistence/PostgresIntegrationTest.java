@@ -1,6 +1,7 @@
 package io.myjobai.persistence;
 
 import io.myjobai.domain.*;
+import io.myjobai.application.*;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.*;
 import org.postgresql.ds.PGSimpleDataSource;
@@ -33,6 +34,18 @@ class PostgresIntegrationTest {
         var names=rows.jdbc.queryForList("SELECT table_name FROM information_schema.tables WHERE table_schema='app'",String.class);
         assertThat(names).contains("users","candidate_profiles","experience_facts","resumes","resume_versions","jobs","job_sources","job_requirements","job_matches","recruiters","contact_points","job_recruiters","applications","application_events","outreach_messages","outreach_versions","approvals","connector_configs","connector_runs","audit_events","outbox_events");
         assertThat(rows.jdbc.queryForList("SELECT indexname FROM pg_indexes WHERE schemaname='app'",String.class)).contains("outbox_claim","jobs_fts","job_matches_rank","approvals_current");
+    }
+    @Test void billedUsageSurvivesDownstreamRollbackAndFailuresCountTowardBudget(){
+        var calls=new java.util.concurrent.atomic.AtomicInteger();
+        Ports.LlmProvider provider=new Ports.LlmProvider(){public String key(){return "fake";}public Ports.Completion generate(Ports.LlmRequest request){calls.incrementAndGet();if(request.task().equals("failure"))throw new IntegrationException("PROVIDER_FAILURE","Safe error",false,false);return new Ports.Completion(Map.of("ok",true),new Ports.Usage("fake","model",10,5,20,0.01));}};
+        var service=new JdbcIntelligence(rows,provider,"fake-model",2,tx.getTransactionManager());
+        var request=new Ports.LlmRequest("success",Ports.Tier.CHEAP,"trusted",Map.of(),Map.of());
+        assertThatThrownBy(()->tx.execute(s->{service.generate(user,request);throw new IllegalStateException("renderer failed");})).isInstanceOf(IllegalStateException.class);
+        assertThat(service.generate(user,request).output()).containsEntry("ok",true);assertThat(calls.get()).isEqualTo(1);
+        var failure=new Ports.LlmRequest("failure",Ports.Tier.CHEAP,"trusted",Map.of(),Map.of());
+        assertThatThrownBy(()->service.generate(user,failure)).isInstanceOf(IntegrationException.class);
+        assertThat(rows.jdbc.queryForObject("SELECT count(*) FROM app.ai_usage WHERE user_id=? AND NOT cached",Long.class,user)).isEqualTo(2);
+        assertThatThrownBy(()->service.generate(user,failure)).hasMessageContaining("budget");assertThat(calls.get()).isEqualTo(2);
     }
     @Test void dedupPreservesEverySourceAndDoesNotLeakUsers(){
         var first=saveJob(job("https://first.example/jobs/1"),"greenhouse");var second=saveJob(job("https://second.example/jobs/2"),"lever");

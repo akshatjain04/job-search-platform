@@ -24,6 +24,7 @@ public final class Resume {
             // Selection and whitespace normalization are provable; arbitrary semantic rewrites are not.
             if (!Normalization.text(bullet.text()).equals(Normalization.text(fact.statement()))) throw DomainException.invalid("Generated claim is not supported verbatim by its verified source fact");
             String expectedHeading = fact.company().isBlank() ? fact.context() : fact.company() + (fact.context().isBlank() ? "" : " — " + fact.context());
+            if(expectedHeading.isBlank())expectedHeading="Verified experience";
             if (!section.heading().equals(expectedHeading)) throw DomainException.invalid("Generated employment/context heading is unsupported");
         }
     }

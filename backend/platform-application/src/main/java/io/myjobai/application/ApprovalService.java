@@ -8,13 +8,13 @@ import java.util.*;
 public class ApprovalService {
     private final Ports.Messages messages;private final Ports.Resumes resumes;private final Ports.Contacts contacts;private final Ports.Outbox outbox;private final Ports.Audit audit;private final Clock clock;
     public ApprovalService(Ports.Messages messages,Ports.Resumes resumes,Ports.Contacts contacts,Ports.Outbox outbox,Ports.Audit audit,Clock clock){this.messages=messages;this.resumes=resumes;this.contacts=contacts;this.outbox=outbox;this.audit=audit;this.clock=clock;}
-    public record Preview(Outreach.Message message,Outreach.Version version,Contact recipient,Resume.Version resume,String fingerprint) {}
+    public record Preview(Outreach.Message message,Outreach.Version version,Contact recipient,Resume.Version resume,String fingerprint,UUID approvalId) {}
     public Preview preview(UUID user,UUID id){return previewOwned(messages.find(user,id,false).orElseThrow(DomainException::missing));}
     private Preview previewOwned(Outreach.Message m){
         var v=messages.version(m.userId(),m.currentVersionId()).orElseThrow(DomainException::missing);
         var c=v.recipientId()==null?null:contacts.find(m.userId(),v.recipientId()).orElseThrow(DomainException::missing);
         var r=v.resumeVersionId()==null?null:resumes.version(m.userId(),v.resumeVersionId()).orElseThrow(DomainException::missing);
-        return new Preview(m,v,c,r,v.fingerprint());
+        return new Preview(m,v,c,r,v.fingerprint(),messages.currentApproval(m.userId(),m.id()).map(Outreach.Approval::id).orElse(null));
     }
     public List<Outreach.Message> list(UUID user){return messages.list(user);}
     public List<Outreach.Version> versions(UUID user,UUID id){messages.find(user,id,false).orElseThrow(DomainException::missing);return messages.versions(user,id);}

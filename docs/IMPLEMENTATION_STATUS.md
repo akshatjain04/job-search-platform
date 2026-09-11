@@ -36,4 +36,16 @@ Updated: 2026-09-11. Status is evidence-based, not a completion claim.
 - `mvn -f backend/pom.xml -pl platform-persistence -am test` with Java 21 and Docker: PASS, 16 tests total, no skips. PostgreSQL 16 container initialized from empty database; Flyway migrate and validate succeeded. Verified indexes, source preservation, cross-user constraints, transactional rollback, idempotency, 40 concurrent claims, lease fencing/backoff and immutable application history.
 - Git checkpoint `284df543f965a3e67bd87b9befd5a0d2a11b8f48` pushed and remote HEAD verified (architecture/specification/acceptance baseline).
 
-Full application build/startup, API/UI/extension/MCP tests and live-provider verification remain pending. Production provider adapters are being implemented; this is not a completed application.
+## Integration checkpoint (supersedes initial matrix where noted)
+
+- Implemented real Gemini, OpenAI Responses, and Claude structured-output strategies, configuration registry, tier routing, schema enforcement, safe errors, retries, cancellation, usage/cost metadata and deterministic test provider.
+- Implemented Greenhouse, Lever, Ashby, JSON-LD career pages, user captures, SSRF-safe public fetching, Brave research and provenance-based contact extraction.
+- Implemented PDF/DOCX extraction, deterministic rendering, fact-ID selection, conservative grounding, bounded repair and score history; private Supabase/local-test storage adapters.
+- Implemented BFF OAuth/PKCE sessions, JWT validation, encrypted server-side refresh tokens, CSRF/ownership boundaries, REST resources and thin authenticated MCP tools.
+- Implemented immutable email preview/approval/queue, Gmail/Graph adapters, mailbox OAuth and refresh, non-sending test mode, and three executable PostgreSQL workers. Ambiguous delivery is not retried automatically.
+- Implemented dashboard routes and extension contextual client; additional acceptance tests and deployment work remain underway.
+- Latest complete backend `mvn package`: PASS, 29 tests, zero failures/errors/skips. Fresh PostgreSQL migrations V1/V2 and usage-accounting rollback regression passed. All five executable applications packaged. API/MCP HTTP startup tests still pending at this checkpoint.
+- `cd web; npm run verify`: PASS, 3 tests and TypeScript/Vite production build. Broader UX/E2E coverage pending.
+- Git checkpoint `04617bd589ea9571cb6e7516dba01918dcd15eb2` pushed and remote verified (domain + PostgreSQL).
+
+Not yet verified: full service startup, Docker images/Compose, HTTP API/MCP acceptance, extension build, complete E2E, production deployment. External accounts/credentials are absent; no live LLM request or real email was used. This checkpoint is not a final completion claim.

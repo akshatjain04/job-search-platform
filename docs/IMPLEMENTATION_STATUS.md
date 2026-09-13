@@ -1,6 +1,6 @@
 # Implementation status
 
-Updated: 2026-09-13. Earlier local acceptance gates below passed. Remote CI exposed an intermittent restart failure; repair verification is in progress.
+Updated: 2026-09-13. Local verification and the full Linux GitHub acceptance run passed for repair commit `92698c3`. Live external integration and EC2 checks remain blocked by the account/configuration requirements below.
 
 ## Git and architecture baseline
 
@@ -17,7 +17,7 @@ All modules were absent initially. These rows describe the current implementatio
 
 | Requirement / acceptance IDs | Current implementation | Evidence | Remaining work / status |
 |---|---|---|---|
-| Domain / PROFILE-01, JOB-02/03, APP-01 | Typed profile/preferences/facts; normalization, ranking, dedup, legal lifecycle and history | Domain and PostgreSQL tests; browser profile/tracker path | Implemented; current final verification in progress |
+| Domain / PROFILE-01, JOB-02/03, APP-01 | Typed profile/preferences/facts; normalization, ranking, dedup, legal lifecycle and history | Domain and PostgreSQL tests; browser profile/tracker path | Local and Linux CI acceptance passed |
 | DB-01/02, ASYNC-01 | Flyway V1–V3, owner predicates/composite FKs, immutable versions/events/facts, transactional outbox, claim fencing/retry/idempotency | Fresh PostgreSQL migration/validation, 40 concurrent claims, rollback and lease tests; restart preserves session/profile/job and exact resume bytes | Local acceptance passed |
 | SEC-01/02/03/04 | OAuth/PKCE BFF, encrypted server refresh tokens, CSRF, restricted CORS, JWT validation, owner isolation, protected extension/MCP tokens | Real HTTP API/MCP tests, token cipher tamper/owner tests, SSRF/path/upload tests | Live Supabase/social OAuth registration requires external setup |
 | JOB-01/04, CONTACT-01/02 | Greenhouse/Lever/Ashby/structured career adapters, capture/import, hiring/referral kinds, provenance, scheduling/match alerts; Brave/public-contact research | Stored feed fixtures, malicious capture, private-address rejection; public-contact evidence fixture added | Live search/feed changes need normal operational monitoring; Brave live proof needs key |
@@ -28,7 +28,7 @@ All modules were absent initially. These rows describe the current implementatio
 | EXT-01 | MV3 React popup, user-triggered visible page/JSON-LD capture, PKCE, origin-bound one-hour access token, contextual actions | Eight deterministic extraction/client tests and production build passed | Live unpacked Chrome identity/permission flow remains manual acceptance |
 | MCP-01/02 | One authenticated stateless HTTP server, 13 tools over shared services; no arbitrary send | All 13 tools exercised against real application services/PostgreSQL; schema/auth/foreign/missing ID tests | Live client/account interoperability requires configured identity |
 | OPS-01/02/03, DEPLOY-01/02 | Non-root images, production/test Compose separation, Nginx TLS/API/MCP, Bash/PowerShell bootstrap and EC2 release deployment | Full bootstrap/image builds, seven healthy containers, smoke/restart, production Compose and Nginx TLS syntax passed | Real EC2/DNS/public TLS needs target |
-| ARCH-01, DOC-01, SKILL-01 | Cost V1 boundaries, setup/operations/security docs, acceptance ledger, portable repair skill and scripts | Repository scan including documentation links: 236 files, no errors; skill validator and static helper passed | Final delivery/remote CI pending |
+| ARCH-01, DOC-01, SKILL-01 | Cost V1 boundaries, setup/operations/security docs, acceptance ledger, portable repair skill and scripts | Repository scan including documentation links: 239 files, no errors; skill validator and static helper passed | Linux CI passed; remaining external limits below |
 
 ## Executed verification
 
@@ -65,9 +65,10 @@ Operations/docs/skill checkpoint `690b57f` and onboarding/Skill checkpoint `f7a8
 
 ## Restart repair verification (2026-09-13)
 
-- GitHub run `34621826471` failed at the post-restart `/profile` assertion (HTTP 403) after container health checks. The prior CI log did not include the response body or container diagnostics, so the exact rejecting layer remains unproven. Classified HIGH against DB-02/OPS-02 until CI passes.
+- GitHub run `34621826471` failed at the post-restart `/profile` assertion (HTTP 403) after container health checks. The prior CI log did not include the response body or container diagnostics, so the exact rejecting layer remains unproven. Initially classified HIGH against DB-02/OPS-02; the subsequent full acceptance run passed after the repairs below. Retain diagnostics for any recurrence.
 - Local reproduction on the unchanged runtime passed; the failure is intermittent. Source review found startup-only Nginx upstream DNS resolution and readiness without database connectivity. Repairs add dynamic Docker DNS and PostgreSQL readiness, plus detailed failure diagnostics and API/MCP replacement coverage while Nginx remains alive.
-- Repository static validator: PASS, 239 files, zero errors. Skill static helper: PASS, three configuration tests. Formatting: PASS. Backend/web Docker image builds: PASS. Updated `node scripts/platform.mjs start --demo`: PASS, seven healthy services and smoke. Expanded `node scripts/restart-test.mjs`: PASS, including upstream replacement with the existing session and unchanged PDF bytes. Production Compose validation and running Nginx syntax: PASS. Remote CI remains pending.
+- Repository static validator: PASS, 239 files, zero errors. Skill static helper: PASS, three configuration tests. Formatting: PASS. Backend/web Docker image builds: PASS. Updated `node scripts/platform.mjs start --demo`: PASS, seven healthy services and smoke. Expanded `node scripts/restart-test.mjs`: PASS, including upstream replacement with the existing session and unchanged PDF bytes. Production Compose validation and running Nginx syntax: PASS.
+- Pushed `92698c3faac33aae43e4deb2a4cd906ea3885da2` (`fix: preserve proxy routing and database readiness across restarts`). [GitHub acceptance run 34741280689](https://github.com/akshatjain04/job-search-platform/actions/runs/34741280689): SUCCESS. Linux repository/configuration tests, Spotless, full bootstrap (clean Java/PostgreSQL tests, web/extension tests/builds, images/startup/smoke), formatting, browser acceptance, expanded restart test, production Compose and safe shutdown all passed. CI artifacts are attached to that run. The final documentation-only checkpoint does not change the tested runtime.
 - Checkout now disables its default `set-safe-directory` behavior, which had written a temporary global Git configuration on the hosted runner. Local global/system configuration was not changed; sandbox Git reads use a process-only safe-directory override.
 
 ## External verification limits and deliberate V1 boundaries
@@ -76,4 +77,4 @@ Real adapters are implemented; live Supabase database/storage/OAuth, Gemini/Open
 
 V1 uses exact verified fact selection/reordering, not unrestricted semantic paraphrasing. Structured resume extraction is a review aid; ambiguous employment relationships and verification require the user. OCR, unrestricted international font coverage, automated social posting/applications, phone/paid enrichment, advanced causal analytics and optional scaling infrastructure are outside the implemented V1 behavior. Internal scoring is a transparent lexical compatibility proxy, not an employer ATS guarantee. No production capacity or provider acceptance claim is based solely on fixtures.
 
-Do not mark the final acceptance complete until the pending checks above have actual results and all intended commits are pushed.
+Executable local/CI delivery gates above have passed. Live provider, unpacked-extension identity and EC2/public TLS checks remain explicitly unverified; fixture and demo results do not substitute for those checks.

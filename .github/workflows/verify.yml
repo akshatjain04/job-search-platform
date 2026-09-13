@@ -11,6 +11,8 @@ jobs:
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
+        with:
+          set-safe-directory: false
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -40,6 +42,11 @@ jobs:
           npx playwright install --with-deps chromium
           npm run e2e
       - run: node scripts/restart-test.mjs
+      - name: Container failure diagnostics
+        if: failure()
+        env:
+          APP_ENV_FILE: .env.test.example
+        run: docker compose --env-file .env.test.example -f docker-compose.yml -f docker-compose.test.yml logs --tail 80
       - name: Production Compose syntax
         env:
           APP_ENV_FILE: .env.example

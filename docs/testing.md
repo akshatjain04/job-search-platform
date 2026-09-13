@@ -40,6 +40,8 @@ The primary bootstrap command builds every backend deployable, tests migrations 
 
 Reports: each module's `target/surefire-reports`; `web/playwright-report`; `web/test-results`. Inspect reports and exit codes; a successful compile is not a passing test suite. Run `mvn -f backend/pom.xml -Pformat spotless:check` and `npm run format:check` for formatting.
 
+The restart test preserves a logged-in session, profile, job and PDF bytes across an all-container restart, then replaces the API/MCP containers while Nginx remains running. It checks protected routing again without reauthentication. Failures report the HTTP response and CI collects recent container logs; it never retries authorization failures into a passing result.
+
 ## Manual acceptance
 
 1. Start `--demo`; open `http://localhost:8080`. Enter a unique test account email. Production instead redirects through Supabase OAuth. Expect a private empty workspace.

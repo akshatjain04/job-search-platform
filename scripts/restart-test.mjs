@@ -33,7 +33,11 @@ async function request(path, method = 'GET', data) {
     },
     body: data === undefined ? undefined : data instanceof FormData ? data : JSON.stringify(data),
   });
-  assert.ok(response.ok, path + ' returned ' + response.status);
+  if (!response.ok) {
+    // Only synthetic test data is used here; surface the rejecting layer for CI diagnosis.
+    const detail = (await response.text()).slice(0, 500);
+    throw new Error(path + ' returned ' + response.status + ': ' + detail);
+  }
   return response;
 }
 await request('/profile', 'PUT', {
@@ -112,6 +116,33 @@ for (const args of [['restart'], ['up', '-d', '--wait', '--wait-timeout', '300']
 assert.equal((await (await request('/profile')).json()).identity.name, 'Restart Verified');
 assert.equal(await digest(), before);
 assert.equal((await (await request('/jobs/' + job.id)).json()).id, job.id);
+// A deploy can replace upstream containers while Nginx stays alive. This must
+// retain both routing and the existing session without restarting the proxy.
+const replacement = spawnSync(
+  'docker',
+  [
+    ...compose,
+    'up',
+    '-d',
+    '--force-recreate',
+    '--no-deps',
+    '--wait',
+    '--wait-timeout',
+    '300',
+    'job-platform-api',
+    'job-platform-mcp',
+  ],
+  { stdio: 'inherit', env: { ...process.env, APP_ENV_FILE: '.env.test.example' } },
+);
+assert.equal(replacement.status, 0, 'Upstream replacement failed');
+assert.equal((await (await request('/profile')).json()).identity.name, 'Restart Verified');
+assert.equal(await digest(), before);
+const mcp = await fetch(origin + '/mcp', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json', Connection: 'close' },
+  body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list' }),
+});
+assert.equal(mcp.status, 401, 'MCP routing and authentication must survive replacement');
 console.log(
-  'Restart PASS: session, profile, canonical job, immutable resume metadata and exact PDF bytes survive restart of all test containers.',
+  'Restart PASS: session, profile, canonical job and exact PDF bytes survive restart; API/MCP routing survives upstream replacement.',
 );

@@ -1,6 +1,6 @@
 # Operations
 
-Readiness: every Java role exposes internal `/actuator/health/readiness`; Nginx exposes `/api-health` and `/healthz`. Compose waits for health. Only intended Nginx ports are public. Structured logs include request/user IDs and worker job IDs; Nginx logs paths without query strings to avoid OAuth-code leakage. Error stacks are sanitized; never enable raw HTTP authorization/body logging.
+Readiness: every Java role exposes internal `/actuator/health/readiness`, including PostgreSQL connectivity; Nginx exposes `/api-health` and `/healthz`. Compose waits for health. Nginx refreshes API/MCP addresses through Docker's embedded DNS so replacing upstream containers does not require restarting the proxy. This resolver configuration assumes the documented Docker network. Only intended Nginx ports are public. Structured logs include request/user IDs and worker job IDs; Nginx logs paths without query strings to avoid OAuth-code leakage. Error stacks are sanitized; never enable raw HTTP authorization/body logging.
 
 Inspect dashboard Activity for event type, state, attempts and safe last error. Connector runs and audit events are persisted. Insights shows recorded lifecycle/source/resume associations, outreach counts and AI usage estimates. Monitor disk/log growth, JVM OOM/restarts, DB connection counts, outbox oldest available age and terminal failures. Use Docker/EC2 host metrics initially; a paid monitoring stack is not required.
 

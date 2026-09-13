@@ -1,6 +1,6 @@
 # Implementation status
 
-Updated: 2026-09-11. Local acceptance gates below passed. Operations delivery and remote CI verification are the remaining release checks.
+Updated: 2026-09-13. Earlier local acceptance gates below passed. Remote CI exposed an intermittent restart failure; repair verification is in progress.
 
 ## Git and architecture baseline
 
@@ -61,7 +61,14 @@ All modules were absent initially. These rows describe the current implementatio
 | `72a3fef52b31912f7d52109b34dd911eb8fce827` | API/MCP acceptance, analytics, immutable evidence, delivery reconciliation and formatting | Remote HEAD verified |
 | `40a1bbc5c495b4f0570952996a9e1ca1ff4ca72e` | Dashboard/extension, structured resume review, source dates/education and browser acceptance | Remote HEAD verified |
 
-Operations/docs/skill checkpoint `690b57f` is committed locally. GitHub rejected its push because the isolated OAuth login lacks `workflow` scope for `.github/workflows/verify.yml`; secure device authorization has been started. Final synchronization and remote CI verification depend on that authorization. No force push or published-history rewrite has been used.
+Operations/docs/skill checkpoint `690b57f` and onboarding/Skill checkpoint `f7a859fb0aa95749de485465fb458aa72ca3549f` were pushed by the user. At continuation, local `main` and `origin/main` matched `f7a859f` and the working tree was clean. No force push or published-history rewrite has been used.
+
+## Restart repair verification (2026-09-13)
+
+- GitHub run `34621826471` failed at the post-restart `/profile` assertion (HTTP 403) after container health checks. The prior CI log did not include the response body or container diagnostics, so the exact rejecting layer remains unproven. Classified HIGH against DB-02/OPS-02 until CI passes.
+- Local reproduction on the unchanged runtime passed; the failure is intermittent. Source review found startup-only Nginx upstream DNS resolution and readiness without database connectivity. Repairs add dynamic Docker DNS and PostgreSQL readiness, plus detailed failure diagnostics and API/MCP replacement coverage while Nginx remains alive.
+- Repository static validator: PASS, 239 files, zero errors. Skill static helper: PASS, three configuration tests. Formatting: PASS. Backend/web Docker image builds: PASS. Updated `node scripts/platform.mjs start --demo`: PASS, seven healthy services and smoke. Expanded `node scripts/restart-test.mjs`: PASS, including upstream replacement with the existing session and unchanged PDF bytes. Production Compose validation and running Nginx syntax: PASS. Remote CI remains pending.
+- Checkout now disables its default `set-safe-directory` behavior, which had written a temporary global Git configuration on the hosted runner. Local global/system configuration was not changed; sandbox Git reads use a process-only safe-directory override.
 
 ## External verification limits and deliberate V1 boundaries
 
